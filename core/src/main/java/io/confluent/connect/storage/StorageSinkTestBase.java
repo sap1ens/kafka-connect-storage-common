@@ -23,6 +23,7 @@ import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTaskContext;
+import org.joda.time.format.ISODateTimeFormat;
 import org.junit.After;
 
 import java.util.HashMap;
@@ -145,6 +146,20 @@ public class StorageSinkTestBase {
     Schema nestedSchema = SchemaBuilder.struct().field("nested", nestedChildSchema);
     return new Struct(nestedSchema)
             .put("nested", createRecordWithTimestampField(nestedChildSchema, timestamp));
+  }
+
+  protected Struct createRecordWithNestedMapAndTimestampField(long timestamp) {
+    String timestampValue = ISODateTimeFormat.dateTime().print(timestamp);
+
+    Schema schema = SchemaBuilder.struct()
+        .field("headers", SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA))
+        .field("data", Schema.BYTES_SCHEMA)
+        .build();
+
+    Struct struct = new Struct(schema);
+    struct.put("headers", new HashMap<String, String>() {{ put("timestamp", timestampValue); }});
+
+    return struct;
   }
 
   protected Map<String, Object> createMapWithTimestampField(long timestamp) {

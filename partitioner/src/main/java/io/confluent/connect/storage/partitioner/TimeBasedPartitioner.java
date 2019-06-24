@@ -279,7 +279,7 @@ public class TimeBasedPartitioner<T> extends DefaultPartitioner<T> {
       if (value instanceof Struct) {
         Struct struct = (Struct) value;
         Object timestampValue = DataUtils.getNestedFieldValue(struct, fieldName);
-        Schema fieldSchema = DataUtils.getNestedField(record.valueSchema(), fieldName).schema();
+        Schema fieldSchema = DataUtils.getNestedFieldSchema(record.valueSchema(), fieldName);
 
         if (Timestamp.LOGICAL_NAME.equals(fieldSchema.name())) {
           return ((Date) timestampValue).getTime();

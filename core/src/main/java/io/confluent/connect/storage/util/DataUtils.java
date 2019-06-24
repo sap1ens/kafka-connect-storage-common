@@ -90,6 +90,30 @@ public class DataUtils {
     }
   }
 
+  public static Schema getNestedFieldSchema(Schema schema, String fieldName) {
+    validate(schema, fieldName);
+
+    final String[] fieldNames = fieldName.split("\\.");
+    try {
+      Field innermost = schema.field(fieldNames[0]);
+      // Iterate down to final schema
+      for (int i = 1; i < fieldNames.length; ++i) {
+        // dealing with map
+        if (innermost.schema().valueSchema() != null) {
+          return innermost.schema().valueSchema();
+        } else {
+          innermost = innermost.schema().field(fieldNames[i]);
+        }
+      }
+      return innermost.schema();
+    } catch (DataException e) {
+      throw new DataException(
+          String.format("Unable to get field schema '%s' from schema %s.", fieldName, schema),
+          e
+      );
+    }
+  }
+
   private static void validate(Object o, String fieldName) {
     if (o == null) {
       throw new ConnectException("Attempted to extract a field from a null object.");

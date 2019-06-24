@@ -540,6 +540,22 @@ public class TimeBasedPartitionerTest extends StorageSinkTestBase {
   }
 
   @Test
+  public void testNestedRecordFieldTimeExtractor2() throws Exception {
+    TimeBasedPartitioner<String> partitioner = configurePartitioner(
+        new TimeBasedPartitioner<>(), "headers.timestamp", null);
+
+    assertThat(partitioner.getTimestampExtractor(),
+        instanceOf(TimeBasedPartitioner.RecordFieldTimestampExtractor.class));
+
+    long timestamp = DATE_TIME.getMillis();
+    SinkRecord sinkRecord = createSinkRecordWithNestedMapAndTimestampField(timestamp);
+
+    String encodedPartition = partitioner.encodePartition(sinkRecord);
+
+    validateEncodedPartition(encodedPartition);
+  }
+
+  @Test
   public void testRecordFieldTimeStringExtractor() {
     DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
     long millis = DATE_TIME.getMillis();
@@ -731,6 +747,12 @@ public class TimeBasedPartitionerTest extends StorageSinkTestBase {
     Struct record = createRecordWithNestedTimestampField(timestamp);
     return new SinkRecord(TOPIC, PARTITION, Schema.STRING_SCHEMA, null, record.schema(), record, 0L,
           timestamp, TimestampType.CREATE_TIME);
+  }
+
+  protected SinkRecord createSinkRecordWithNestedMapAndTimestampField(long timestamp) {
+    Struct record = createRecordWithNestedMapAndTimestampField(timestamp);
+    return new SinkRecord(TOPIC, PARTITION, Schema.STRING_SCHEMA, null, record.schema(), record, 0L,
+        timestamp, TimestampType.CREATE_TIME);
   }
 
   private String getPartitionedPath(TimeBasedPartitioner<String> partitioner) {
